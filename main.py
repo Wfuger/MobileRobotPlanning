@@ -38,3 +38,5 @@ def get_pitstops()
 
 # grid stuff
 # kinematics stuff
+
+# grid coords to meters
