@@ -1,11 +1,13 @@
 from math import sqrt, acos, pi
 
+# grid -> x, y, theta (c space)
+# x, y, theta -> wheel rots (w space)
 class Kinematics():
     def __init__(self, cell_size):
         self.cell_size = cell_size
 
 
-    def grid_path_to_workspace(self, path):
+    def grid_path_to_cspace(self, path):
         moves = list()
         current_theta = 0
         for i in range(1, len(path)):
@@ -19,21 +21,21 @@ class Kinematics():
 
 
     def get_rotation(self, a, b, orientation):
+        # dot_prod(a,b) = mag(a)*mag(b)*cos(theta)
         vec = self.get_vector(a, b)
-        # print(f"vec {vec}")
-        # print(f"vec mag {self.magnitude(vec)}")
-        cosx = self.dot_product(vec, (1, 0))/(self.magnitude(vec))
-        # print(f"cosx {cosx}")
-        rad = acos(cosx)
-        # print(f"orientation {orientation}")
-        print(f"rad {rad}")
-        # print(f"dot prod {self.dot_product(a, b)}")
+        # cos(theta) = dot_prod(v, i^)/mag(v)
+        cos_theta = self.dot_product(vec, (1, 0))/(self.magnitude(vec))
+        rad = acos(cos_theta)
+
+        # y direction of vector is negative so in quad 3/4
+        if vec[1] < 0:
+            rad *= -1
+
         rotation = rad - orientation
 
-        print(f"rotation {rotation}")
         if abs(rotation) > pi:
             rotation += 2*pi
-        print(f"rotation {rotation}")
+
         return rotation
 
 
