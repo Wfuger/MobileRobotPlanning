@@ -1,4 +1,4 @@
-import dijkstras
+import planner
 import kinematics
 
 

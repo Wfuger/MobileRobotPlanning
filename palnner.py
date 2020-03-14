@@ -103,44 +103,75 @@ def build_matrix(m,obstacles,robot_margin,cell_size):
             
     
     
-class planner:
+class Planner:
     def __init__(self,obstacles,robot_margin,grid_length=10,grid_size=100):
         self.grid_size=grid_size
         self.grid_length=grid_length
         self.m=np.zeros((grid_size*grid_size,grid_size*grid_size),dtype=int)
         self.cell_size=grid_length/grid_size
+        self.obstacles=obstacles
+        self.robot_margin=robot_margin
+    def build_graph(self,):
+        del self.m
+        grid_size=self.grid_size
+        m=np.zeros((grid_size*grid_size,grid_size*grid_size),dtype=np.int8)
+        self.m=build_matrix(m,self.obstacles,self.robot_margin,self.cell_size)
+    def path(self,start,end):
+        sx,sy=start
+        ex,ey=end
+        scx=math.floor(sx/self.cell_size)
+        scy=math.floor(sy/self.cell_size)
+        s_encoding=scx*self.grid_size+scy
+        ecx=math.floor(ex/self.cell_size)
+        ecy=math.floor(ey/self.cell_size)
+        e_encoding=ecx*self.grid_size+ecy
+        D,Pr=breadth_first_order(self.m,s_encoding,directed=False)
+        p=[]
+        if(Pr[e_encoding]<0):
+            print('no path exists')
+            return -1
+        p.append([ecx,ecy])
+        encoding=e_encoding
+        while(Pr[encoding]>=0):
+            predecessor=Pr[encoding]
+            x=predecessor//self.grid_size
+            y=predecessor%self.grid_size
+            p=[[x,y]]+p
+            encoding=predecessor
+        return p
+   
         
     
 
 
 
 
-
-M = np.array([[0, 1, 1, 0, 0, 1],
-              [1, 0, 1, 1, 0, 0],
-              [1, 1, 0, 1, 0, 1],
-              [0, 1, 1, 0, 1, 0],
-              [0, 0, 0, 1, 0, 1],
-              [1, 0, 1, 0, 1, 0]],dtype=np.bool)
-
-M=np.ones((10000,10000),dtype=int)
-
-
-D, Pr = shortest_path(M, directed=False, method='D', return_predecessors=True)
-
-def get_path(Pr, i, j):
-    path = [j]
-    k = j
-    while Pr[i, k] != -9999:
-        path.append(Pr[i, k])
-        k = Pr[i, k]
-    return path[::-1]
-
-print(get_path(Pr,1,2))
-
-
-Tcsr = breadth_first_tree(M, 0, directed=False)
-D,Pr=breadth_first_order(m,0,directed=False)
+#
+#M = np.array([[0, 1, 1, 0, 0, 1],
+#              [1, 0, 1, 1, 0, 0],
+#              [1, 1, 0, 1, 0, 1],
+#              [0, 1, 1, 0, 1, 0],
+#              [0, 0, 0, 1, 0, 1],
+#              [1, 0, 1, 0, 1, 0]],dtype=np.bool)
+#
+#M=np.ones((10000,10000),dtype=int)
+#
+#
+#D, Pr = shortest_path(M, directed=False, method='D', return_predecessors=True)
+#
+#def get_path(Pr, i, j):
+#    path = [j]
+#    k = j
+#    while Pr[i, k] != -9999:
+#        path.append(Pr[i, k])
+#        k = Pr[i, k]
+#    return path[::-1]
+#
+#print(get_path(Pr,1,2))
+#
+#
+#Tcsr = breadth_first_tree(M, 0, directed=False)
+#D,Pr=breadth_first_order(m,0,directed=False)
 
 
 if __name__ == "__main__":
@@ -161,6 +192,16 @@ if __name__ == "__main__":
     obstacles=np.array([[20,20,4.5,6.2],[1.1,1.1,1.5,1.5]],dtype=np.float)
     m=build_matrix(m,obstacles,0,1)
     
+    
+    #test shortest path
+    obstacles1=np.array([[20,20,4.5,6.2],[2.6,2.6,4,4]],dtype=np.float)
+    #obstacles2=
+    robot_margin=0.1
+    grid_length=10
+    grid_size=100
+    planner=Planner(obstacles,robot_margin,grid_length,grid_size)
+    planner.build_graph()
+    path=planner.path([0.1,0.1],[5.5,5.5])
     
     
     
