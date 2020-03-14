@@ -24,7 +24,17 @@ class Kinematics():
             moves.append((translation_m, theta))
             current_theta = self.new_orientation(a, b)
 
+        self.moves = moves
         return moves
+
+    def cspace_to_wheel_rotations():
+        wheel_rotations = list()
+        for x, theta in self.moves:
+            if theta != 0:
+                wheel_rotations.append(self.rotation_to_wheel_rotation(theta))
+            wheel_rotations.append(translation_to_wheel_rotation(x))
+        return wheel_rotations
+
 
 
     def rotation_to_wheel_rotation(self, theta):
