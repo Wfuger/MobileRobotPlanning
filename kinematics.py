@@ -44,12 +44,9 @@ class Kinematics():
         grid_x, grid_y = cell
         center_x = (grid_x * self.cell_size) + (self.cell_size/2)
         center_y = (grid_y * self.cell_size) + (self.cell_size/2)
-        print(f"center {(center_x, center_y)}")
         theta = self.get_rotation(point, (center_x, center_y), orientation)
         vec = self.get_vector(point, (center_x, center_y))
-        print(f"vec {vec}")
         mag = self.magnitude(vec)
-        print(f"mag {mag}")
         return mag, theta
 
 
@@ -59,9 +56,7 @@ class Kinematics():
         center_y = (grid_y * self.cell_size) + (self.cell_size/2)
         theta = self.get_rotation((center_x, center_y), point, orientation)
         vec = self.get_vector((center_x, center_y), point)
-        print(f"vec {vec}")
         mag = self.magnitude(vec)
-        print(f"mag {mag}")
         return mag, theta
 
 
