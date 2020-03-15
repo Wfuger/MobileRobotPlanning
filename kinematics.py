@@ -10,9 +10,11 @@ class Kinematics():
 
 
     # grid -> x, theta (c space)
-    def grid_path_to_cspace(self, path):
+    def grid_path_to_cspace(self, path, start, end):
         moves = list()
-        current_theta = 0
+        current_theta = pi
+        first_move = self.point_to_cell(start, path[1], 0)
+        # moves.append(first_move)
         for i in range(1, len(path)):
             a = path[i - 1] 
             b = path[i] 
@@ -24,17 +26,38 @@ class Kinematics():
             moves.append((translation_m, theta))
             current_theta = self.new_orientation(a, b)
 
+        last_move = self.cell_to_point(end, path[-1], current_theta)
+        # moves.append(last_move)
         self.moves = moves
         return moves
 
-    def cspace_to_wheel_rotations():
+    def cspace_to_wheel_rotations(self):
         wheel_rotations = list()
         for x, theta in self.moves:
             if theta != 0:
                 wheel_rotations.append(self.rotation_to_wheel_rotation(theta))
-            wheel_rotations.append(translation_to_wheel_rotation(x))
+            wheel_rotations.append(self.translation_to_wheel_rotation(x))
         return wheel_rotations
 
+
+    def point_to_cell(self, cell, point, orientation):
+        grid_x, grid_y = cell
+        center_x = (grid_x * self.cell_size) + (self.cell_size/2)
+        center_y = (grid_y * self.cell_size) + (self.cell_size/2)
+        theta = self.get_rotation(point, (center_x, center_y), orientation)
+        vec = self.get_vector(point, (center_x, center_y))
+        mag = self.magnitude(vec)
+        return mag, theta
+
+
+    def cell_to_point(self, cell, point, orientation):
+        grid_x, grid_y = cell
+        center_x = (grid_x * self.cell_size) + (self.cell_size/2)
+        center_y = (grid_y * self.cell_size) + (self.cell_size/2)
+        theta = self.get_rotation((center_x, center_y), point, orientation)
+        vec = self.get_vector((center_x, center_y), point)
+        mag = self.magnitude(vec)
+        return mag, theta
 
 
     def rotation_to_wheel_rotation(self, theta):
@@ -42,14 +65,8 @@ class Kinematics():
         Takes rotation desired of robot in radians
         returns (theta_left, theta_right)
         """
-        if theta == 0:
-            return (0, 0)
-        elif theta > 0:
-            theta_r = (self.axle_length/2)*(theta/self.wheel_radius)
-            return (-theta_r, theta_r)
-        else:
-            theta_r = (self.axle_length/2)*(theta/self.wheel_radius)
-            return (theta_r, -theta_r)
+        theta_r = (self.axle_length/2)*(theta/self.wheel_radius)
+        return (-theta_r, theta_r)
 
 
     def translation_to_wheel_rotation(self, x):

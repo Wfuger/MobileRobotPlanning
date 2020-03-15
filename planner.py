@@ -1,10 +1,11 @@
 import numpy as np
-import numpy as np
 from scipy.sparse.csgraph import shortest_path
 from scipy.sparse.csgraph import breadth_first_tree
 from scipy.sparse.csgraph import breadth_first_order
 from numba import jit
 import math
+
+from kinematics import *
 
 @jit(nopython=True)
 def cell_collision(cell,robot_margin,cell_size,obstacles):
@@ -13,6 +14,11 @@ def cell_collision(cell,robot_margin,cell_size,obstacles):
     a=i*cell_size
     b=j*cell_size
     o_size=len(obstacles)
+    # print(f"i {i}")
+    # print(f"j {j}")
+    # print(f"cell_size {cell_size}")
+    # print(f"a {a}")
+    # print(f"b {b}")
 
     for i in range(o_size):
         o=obstacles[i]
@@ -20,6 +26,7 @@ def cell_collision(cell,robot_margin,cell_size,obstacles):
         c2=max([o[0],o[2]])+robot_margin
         d1=min([o[1],o[3]])-robot_margin
         d2=max([o[1],o[3]])+robot_margin
+        
         if(a>c2 or c1>(a+cell_size)):
             continue
         elif((b+cell_size<d1) or d2<b):
@@ -27,14 +34,13 @@ def cell_collision(cell,robot_margin,cell_size,obstacles):
         else:
             return True
     return False
-        
-        
-        
-    
+
 
 def build_matrix(m,obstacles,robot_margin,cell_size):
     grid_size=len(m)
     grid_size=int(math.sqrt(grid_size))
+    print(f"grid size... {grid_size}")
+    print(f"cell size... {cell_size}")
     env=np.ones([grid_size,grid_size],dtype=np.bool)
     for i in range(grid_size):
         for j in range(grid_size):
@@ -88,21 +94,10 @@ def build_matrix(m,obstacles,robot_margin,cell_size):
                     m[center,bottomright]=1
                     m[bottomright,center]=1
                 
-                    
-                    
-                    
+    print(m.shape)                
     return m
-        
-            
-            
-            
-            
-            
-    
-    
-            
-    
-    
+
+
 class Planner:
     def __init__(self,obstacles,robot_margin,grid_length=10,grid_size=100):
         self.grid_size=grid_size
@@ -114,8 +109,10 @@ class Planner:
     def build_graph(self,):
         del self.m
         grid_size=self.grid_size
-        m=np.zeros((grid_size*grid_size,grid_size*grid_size),dtype=np.int8)
+        m=np.zeros((grid_size**2, grid_size**2),dtype=np.int8)
         self.m=build_matrix(m,self.obstacles,self.robot_margin,self.cell_size)
+        # print(self.m)
+        # np.savetxt('matrix.txt', self.m)
     def path(self,start,end):
         sx,sy=start
         ex,ey=end
@@ -177,20 +174,20 @@ class Planner:
 if __name__ == "__main__":
     # check cell collision function
     
-    #test case 1
-    cell=np.array([1,1],dtype=int)
-    obstacles=np.array([[20,20,4.5,6.2],[1.8,2,4.5,6.2]],dtype=np.float)
-    print(cell_collision(cell,0,1,obstacles))
-    #test case 2
-    cell=np.array([1,1],dtype=int)
-    obstacles=np.array([[20,20,4.5,6.2],[1.1,1.1,1.5,1.5]],dtype=np.float)
-    print(cell_collision(cell,0,1,obstacles))
+    # #test case 1
+    # cell=np.array([1,1],dtype=int)
+    # obstacles=np.array([[20,20,4.5,6.2],[1.8,2,4.5,6.2]],dtype=np.float)
+    # print(cell_collision(cell,0,1,obstacles))
+    # #test case 2
+    # cell=np.array([1,1],dtype=int)
+    # obstacles=np.array([[20,20,4.5,6.2],[1.1,1.1,1.5,1.5]],dtype=np.float)
+    # print(cell_collision(cell,0,1,obstacles))
     
-    #check build_matrix function
-    grid_size=100
-    m=np.zeros((grid_size*grid_size,grid_size*grid_size),dtype=np.int8)
-    obstacles=np.array([[20,20,4.5,6.2],[1.1,1.1,1.5,1.5]],dtype=np.float)
-    m=build_matrix(m,obstacles,0,1)
+    # #check build_matrix function
+    # grid_size=100
+    # m=np.zeros((grid_size*grid_size,grid_size*grid_size),dtype=np.int8)
+    # obstacles=np.array([[20,20,4.5,6.2],[1.1,1.1,1.5,1.5]],dtype=np.float)
+    # m=build_matrix(m,obstacles,0,1)
     
     
     #test shortest path
@@ -199,9 +196,29 @@ if __name__ == "__main__":
     robot_margin=0.1
     grid_length=10
     grid_size=100
-    planner=Planner(obstacles,robot_margin,grid_length,grid_size)
+    # obs=np.array([[20,20,4.5,6.2],[2.6,2.6,4,4]],dtype=np.float)
+    # obs = [[[.5, 0, 0], [1, .5, .5]], [[-1, 0, 0], [-.5, .5, .5]]]
+    obs = np.array([[0.5, 1, 1.5, 2], [.5,8,1.5,9]], dtype=np.float)
+    planner=Planner(obs,robot_margin,grid_length,grid_size)
     planner.build_graph()
-    path=planner.path([0.1,0.1],[5.5,5.5])
+    start = [0, 0]
+    end = [5.5, 5.5]
+    path=planner.path(start,end)
+    if path != -1:
+        with open("cell_path.txt", "w") as f:
+            for cell in path:
+                f.write(f"{cell}\n")
+        k = Kinematics(0.1, 0.124, 0.028)
+        x_thetas = k.grid_path_to_cspace(path, start, end)
+        with open("x_theta_path.txt", "w") as f:
+            for cell in x_thetas:
+                f.write(f"{cell}\n")
+        wheel_rotations = k.cspace_to_wheel_rotations()
+        with open("path.txt", "w") as f:
+            for rot in wheel_rotations:
+                left, right = rot
+                f.write(f"{right} {left}\n")
+    
     
     
     

@@ -23,19 +23,31 @@ def test_rotation_to_wheel_rotation():
     k = Kinematics(0.1, axle_length, wheel_radius)
     theta_axle = pi/2
     theta_l, theta_r = k.rotation_to_wheel_rotation(theta_axle)
-    print(f"theta l {theta_l}")
-    print(f"theta r {theta_r}")
     aboot = (theta_axle*(axle_length/2))/wheel_radius
     assert theta_r == pytest.approx(aboot)
     assert theta_l == pytest.approx(-aboot)
+    axle_length = 0.124
+    wheel_radius = 0.028
+    k = Kinematics(0.1, axle_length, wheel_radius)
+    theta_axle = (3*pi)/4
+    theta_l, theta_r = k.rotation_to_wheel_rotation(theta_axle)
+    aboot = 5.21728
+    assert theta_r == pytest.approx(aboot, 0.0001)
+    assert theta_l == pytest.approx(-aboot, 0.0001)
+    axle_length = 0.124
+    wheel_radius = 0.028
+    k = Kinematics(0.1, axle_length, wheel_radius)
+    theta_axle = -(3*pi)/4
+    theta_l, theta_r = k.rotation_to_wheel_rotation(theta_axle)
+    aboot = 5.21728
+    assert theta_r == pytest.approx(-aboot, 0.0001)
+    assert theta_l == pytest.approx(aboot, 0.0001)
 
 
 @pytest.mark.trans_wheel_rotations
 def test_translation_to_wheel_rotation():
     k = Kinematics(0.1, 0.15, 0.05)
     theta_l, theta_r = k.translation_to_wheel_rotation(5)
-    print(f"theta l {theta_l}")
-    print(f"theta r {theta_r}")
     assert theta_r == 100
     assert theta_l == 100
 
@@ -78,11 +90,29 @@ def test_get_rotation():
     k = Kinematics(0.1, 0.15, 0.05)
     for o, vecs in circle_test.items():
         for i, vec in enumerate(vecs):
-            a = vec[0]
-            b = vec[1]
+            a, b = vec
             if around[i] == pi:
                 assert abs(k.get_rotation(a, b, o)) == pytest.approx(around[i])
             else:
                 assert k.get_rotation(a, b, o) == pytest.approx(around[i])
 
 
+
+@pytest.mark.free_move
+def test_point_to_cell():
+    k = Kinematics(0.1, 0.15, 0.05)
+    cell = (1,3)
+    point = (.23, .375)
+    x, theta = k.point_to_cell(cell, point, 0)
+    assert x == pytest.approx(0.0838, 0.001)
+    assert theta == pytest.approx(-(pi-0.30288), 0.0001)
+
+
+@pytest.mark.free_move
+def test_cell_to_point():
+    k = Kinematics(0.1, 0.15, 0.05)
+    cell = (1,3)
+    point = (.23, .375)
+    x, theta = k.cell_to_point(cell, point, -(pi/2))
+    assert x == pytest.approx(0.0838, 0.001)
+    assert theta == pytest.approx((0.30288+(pi/2)), 0.0001)
