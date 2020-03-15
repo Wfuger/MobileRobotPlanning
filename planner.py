@@ -14,11 +14,6 @@ def cell_collision(cell,robot_margin,cell_size,obstacles):
     a=i*cell_size
     b=j*cell_size
     o_size=len(obstacles)
-    # print(f"i {i}")
-    # print(f"j {j}")
-    # print(f"cell_size {cell_size}")
-    # print(f"a {a}")
-    # print(f"b {b}")
 
     for i in range(o_size):
         o=obstacles[i]
@@ -94,7 +89,6 @@ def build_matrix(m,obstacles,robot_margin,cell_size):
                     m[center,bottomright]=1
                     m[bottomright,center]=1
                 
-    print(m.shape)                
     return m
 
 
@@ -111,8 +105,6 @@ class Planner:
         grid_size=self.grid_size
         m=np.zeros((grid_size**2, grid_size**2),dtype=np.int8)
         self.m=build_matrix(m,self.obstacles,self.robot_margin,self.cell_size)
-        # print(self.m)
-        # np.savetxt('matrix.txt', self.m)
     def path(self,start,end):
         sx,sy=start
         ex,ey=end
@@ -198,7 +190,7 @@ if __name__ == "__main__":
     grid_size=100
     # obs=np.array([[20,20,4.5,6.2],[2.6,2.6,4,4]],dtype=np.float)
     # obs = [[[.5, 0, 0], [1, .5, .5]], [[-1, 0, 0], [-.5, .5, .5]]]
-    obs = np.array([[0.5, 1, 1.5, 2], [.5,8,1.5,9]], dtype=np.float)
+    obs = np.array([[0.5, 1, 1.5, 2], [.5, 8, 1.5, 9]], dtype=np.float)
     planner=Planner(obs,robot_margin,grid_length,grid_size)
     planner.build_graph()
     start = [0, 0]
