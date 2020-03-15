@@ -12,10 +12,10 @@ class Kinematics():
     # grid -> x, theta (c space)
     def grid_path_to_cspace(self, path, start, end):
         moves = list()
-        current_theta = 0
+        current_theta = pi
         first_move = self.point_to_cell(start, path[1], 0)
-        moves.append(first_move)
-        for i in range(2, len(path) - 1):
+        # moves.append(first_move)
+        for i in range(1, len(path)):
             a = path[i - 1] 
             b = path[i] 
             x = 1
@@ -27,7 +27,7 @@ class Kinematics():
             current_theta = self.new_orientation(a, b)
 
         last_move = self.cell_to_point(end, path[-1], current_theta)
-        moves.append(last_move)
+        # moves.append(last_move)
         self.moves = moves
         return moves
 
@@ -65,14 +65,8 @@ class Kinematics():
         Takes rotation desired of robot in radians
         returns (theta_left, theta_right)
         """
-        if theta == 0:
-            return (0, 0)
-        elif theta > 0:
-            theta_r = (self.axle_length/2)*(theta/self.wheel_radius)
-            return (-theta_r, theta_r)
-        else:
-            theta_r = (self.axle_length/2)*(theta/self.wheel_radius)
-            return (theta_r, -theta_r)
+        theta_r = (self.axle_length/2)*(theta/self.wheel_radius)
+        return (-theta_r, theta_r)
 
 
     def translation_to_wheel_rotation(self, x):

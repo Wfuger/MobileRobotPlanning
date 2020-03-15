@@ -26,6 +26,22 @@ def test_rotation_to_wheel_rotation():
     aboot = (theta_axle*(axle_length/2))/wheel_radius
     assert theta_r == pytest.approx(aboot)
     assert theta_l == pytest.approx(-aboot)
+    axle_length = 0.124
+    wheel_radius = 0.028
+    k = Kinematics(0.1, axle_length, wheel_radius)
+    theta_axle = (3*pi)/4
+    theta_l, theta_r = k.rotation_to_wheel_rotation(theta_axle)
+    aboot = 5.21728
+    assert theta_r == pytest.approx(aboot, 0.0001)
+    assert theta_l == pytest.approx(-aboot, 0.0001)
+    axle_length = 0.124
+    wheel_radius = 0.028
+    k = Kinematics(0.1, axle_length, wheel_radius)
+    theta_axle = -(3*pi)/4
+    theta_l, theta_r = k.rotation_to_wheel_rotation(theta_axle)
+    aboot = 5.21728
+    assert theta_r == pytest.approx(-aboot, 0.0001)
+    assert theta_l == pytest.approx(aboot, 0.0001)
 
 
 @pytest.mark.trans_wheel_rotations
