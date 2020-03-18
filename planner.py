@@ -128,6 +128,35 @@ class Planner:
             p=[[x,y]]+p
             encoding=predecessor
         return p
+    def multiple_path(self,start,points):
+        paths=[]
+        for i in range(len(points)):
+            end=points[i]
+            sx,sy=start
+            ex,ey=end
+            scx=math.floor(sx/self.cell_size)
+            scy=math.floor(sy/self.cell_size)
+            s_encoding=scx*self.grid_size+scy
+            ecx=math.floor(ex/self.cell_size)
+            ecy=math.floor(ey/self.cell_size)
+            e_encoding=ecx*self.grid_size+ecy
+            D,Pr=breadth_first_order(self.m,s_encoding,directed=False)
+            p=[]
+            if(Pr[e_encoding]<0):
+                print('no path exists for ',i)
+                paths.append(-1)
+                return paths
+            p.append([ecx,ecy])
+            encoding=e_encoding
+            while(Pr[encoding]>=0):
+                predecessor=Pr[encoding]
+                x=predecessor//self.grid_size
+                y=predecessor%self.grid_size
+                p=[[x,y]]+p
+                encoding=predecessor
+            paths.append(p)
+            start=end
+        return paths
    
         
     
