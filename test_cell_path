@@ -1,0 +1,68 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Wed Mar 18 00:05:20 2020
+
+@author: petershenxdf
+"""
+
+import numpy as np
+from planner import Planner
+import matplotlib.pyplot as plt
+from matplotlib.patches import Rectangle
+
+
+def draw_paths(points,paths,obs,cell_size):
+    #paths=np.array(paths)*cell_size
+    plt.figure()
+    for o in obs:
+        x1,y1,x2,y2=o
+        x=min(x1,x2)
+        y=min(y1,y2)
+        length=abs(x1-x2)
+        width=abs(y1-y2)
+        currentAxis=plt.gca()
+        currentAxis.add_patch(Rectangle((x, y), length, width, fill=None, alpha=1))
+    for p in points:
+        x,y=p
+        plt.plot(x,y,'o')
+    for p in paths:
+        path=np.array(p)*cell_size
+        plt.plot(path[:,0],path[:,1])
+    plt.savefig('test1.png')
+        
+
+        
+    
+
+
+
+
+robot_margin=0.2
+grid_length=10
+grid_size=100
+# obs=np.array([[20,20,4.5,6.2],[2.6,2.6,4,4]],dtype=np.float)
+# obs = [[[.5, 0, 0], [1, .5, .5]], [[-1, 0, 0], [-.5, .5, .5]]]
+obs = np.array([[0.5, 1, 1.5, 2], [.5, 8, 1.5, 9],[2.7,4,3.5,2]], dtype=np.float)
+planner=Planner(obs,robot_margin,grid_length,grid_size)
+planner.build_graph()
+start = [0, 0]
+points = [[2,2],[4.4,4.4],[5.5,5.5]]
+path=planner.multiple_path(start,points)
+
+draw_paths(points,path,obs,0.1)
+
+
+
+
+#someX, someY = 0.3, 0.3
+#plt.figure()
+#currentAxis1 = plt.gca()
+#currentAxis1.add_patch(Rectangle((someX, someY), 0.4, 0.2, fill=None, alpha=1))
+#
+#plt.plot(1,2,'o')
+##someX, someY = 0.4, 0.4
+##currentAxis2 = plt.gca()
+##currentAxis2.add_patch(Rectangle((someX - .1, someY - .1), 0.2, 0.2, fill=None, alpha=1))
+#
+#plt.show()
