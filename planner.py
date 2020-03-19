@@ -87,18 +87,18 @@ def build_matrix(m,obstacles,robot_margin,cell_size,grid_size,width_size):
             if(j>0 and i+1<width_size):
                 upleft=(i+1)*grid_size+j-1
                 if(env[i+1,j-1]):
-                    m[center,upleft]=1.5
-                    m[upleft,center]=1.5
+                    m[center,upleft]=1.4
+                    m[upleft,center]=1.4
             if(i+1<width_size and j+1 <grid_size):
                 upright=(i+1)*grid_size+j+1
                 if(env[i+1,j+1]):
-                    m[center,upright]=1.5
-                    m[upright,center]=1.5
+                    m[center,upright]=1.4
+                    m[upright,center]=1.4
             if(i>0 and j+1<grid_size):
                 bottomright=(i-1)*grid_size+j+1
                 if(env[i-1,j+1]):
-                    m[center,bottomright]=1.5
-                    m[bottomright,center]=1.5
+                    m[center,bottomright]=1.4
+                    m[bottomright,center]=1.4
                 
     return m
 
@@ -113,12 +113,15 @@ def get_path(Pr, i, j):
 #print(get_path(Pr,0,5555))
 #
 
-def points_oder(start,points):
+def points_order(start,points):
     s=np.array(start)
     p=np.array(points)
-    distance=np.lin.norm(p-s,axis=1)
+    distance=np.linalg.norm(p-s,axis=1)
     order=np.argsort(distance)
-    return points[order]
+    new=[]
+    for i in order:
+        new.append(points[i])
+    return new
 
 class Planner:
     def __init__(self,obstacles,robot_margin,grid_length=10,grid_width=10,grid_size=100):
@@ -159,7 +162,7 @@ class Planner:
             encoding=predecessor
         return p
     def multiple_path(self,start,points):
-        points=points_order(points)
+        points=points_order(start,points)
         paths=[]
         for i in range(len(points)):
             end=points[i]
@@ -189,6 +192,7 @@ class Planner:
             start=end
         return paths
     def multiple_dijk(self,start,points):
+        points=points_order(start,points)
         paths=[]
         D,Pr=shortest_path(self.m,directed=False, method='D', return_predecessors=True)
         for i in range(len(points)):
