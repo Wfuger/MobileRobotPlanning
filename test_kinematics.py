@@ -98,21 +98,21 @@ def test_get_rotation():
 
 
 
-@pytest.mark.free_move
-def test_point_to_cell():
-    k = Kinematics(0.1, 0.15, 0.05)
-    cell = (1,3)
-    point = (.23, .375)
-    x, theta = k.point_to_cell(cell, point, 0)
-    assert x == pytest.approx(0.0838, 0.001)
-    assert theta == pytest.approx(-(pi-0.30288), 0.0001)
+# @pytest.mark.free_move
+# def test_point_to_cell():
+#     k = Kinematics(0.1, 0.15, 0.05)
+#     cell = (1,3)
+#     point = (.23, .375)
+#     x, theta = k.point_to_cell(cell, point, 0)
+#     assert x == pytest.approx(0.0838, 0.001)
+#     assert theta == pytest.approx(-(pi-0.30288), 0.0001)
 
 
-@pytest.mark.free_move
-def test_cell_to_point():
-    k = Kinematics(0.1, 0.15, 0.05)
-    cell = (1,3)
-    point = (.23, .375)
-    x, theta = k.cell_to_point(cell, point, -(pi/2))
-    assert x == pytest.approx(0.0838, 0.001)
-    assert theta == pytest.approx((0.30288+(pi/2)), 0.0001)
+# @pytest.mark.free_move
+# def test_cell_to_point():
+#     k = Kinematics(0.1, 0.15, 0.05)
+#     cell = (1,3)
+#     point = (.23, .375)
+#     x, theta = k.cell_to_point(cell, point, -(pi/2))
+#     assert x == pytest.approx(0.0838, 0.001)
+#     assert theta == pytest.approx((0.30288+(pi/2)), 0.0001)

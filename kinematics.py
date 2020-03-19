@@ -14,33 +14,34 @@ class Kinematics():
     def grid_path_to_cspace(self, path, start, end):
         moves = list()
         current_theta = self.orientation
+        # print(f"current theta {current_theta}")
         first_move = self.point_to_cell(start, path[1], self.orientation)
-        current_theta = self.new_orientation(start, (path[1][0]*self.cell_size, path[1][1]*self.cell_size))
-        print(f"first move {(path[1][0]*self.cell_size, path[1][1]*self.cell_size)}")
-        print(f"start {start}")
-        print(f"current_theta {current_theta}")
-        moves.append(first_move)
-        for i in range(2, len(path) - 1):
+        # current_theta = self.new_orientation(start, (path[1][0]*self.cell_size, path[1][1]*self.cell_size))
+        # print(f"first move {first_move}")
+        # print(f"current theta {current_theta}")
+        # print(f"start {start}")
+        # print(f"current_theta {current_theta}")
+        # moves.append(first_move)
+        for i in range(1, len(path)):
             a = path[i - 1] 
             b = path[i] 
             x = 1
-            theta = self.get_rotation(a, b, current_theta)
+            theta = self.get_rotation(a, b, self.orientation)
             if a[0] != b[0] and a[1] != b[1]:
                 x = sqrt(2)
             translation_m = self.get_translation(x)
             moves.append((translation_m, theta))
-            if i == len(path) - 2:
-                print(f"moof {(translation_m, theta)}")
-            current_theta = self.new_orientation(a, b)
+            self.orientation = self.new_orientation(a, b)
 
         last_move = self.cell_to_point(end, path[-2], current_theta)
-        print(f"last move {last_move}")
+        # print(f"last move {last_move}")
+        # print(f"orientation {current_theta}")
         # self.orientation = t
-        current_theta = self.new_orientation((path[-2][0]*self.cell_size, path[-2][1]*self.cell_size), end)
-        moves.append(last_move)
+        # self.orientation = self.new_orientation((path[-2][0]*self.cell_size, path[-2][1]*self.cell_size), end)
+        # moves.append(last_move)
         self.moves = moves
-        print(f"moves len {len(moves)}")
-        print(f"path len {len(path)}")
+        # print(f"orientation {self.orientation}")
+        # print(f"path len {len(path)}")
         return moves
 
     def cspace_to_wheel_rotations(self):
@@ -80,6 +81,7 @@ class Kinematics():
         grid_x, grid_y = cell
         center_x = (grid_x * self.cell_size) + (self.cell_size/2)
         center_y = (grid_y * self.cell_size) + (self.cell_size/2)
+        # print(f"({center_x}, {center_y})")
         theta = self.get_rotation((center_x, center_y), point, orientation)
         vec = self.get_vector((center_x, center_y), point)
         mag = self.magnitude(vec)
@@ -110,6 +112,7 @@ class Kinematics():
         # cos(theta) = dot_prod(v, i^)/mag(v)
         cos_theta = self.dot_product(vec, (1, 0))/(self.magnitude(vec))
         rad = acos(cos_theta)
+        # y direction of vector is negative so in quad 3/4
         if vec[1] < 0:
             rad *= -1
         return rad
@@ -117,12 +120,17 @@ class Kinematics():
 
     def get_rotation(self, a, b, orientation):
         rad = self.new_orientation(a, b)
-        # y direction of vector is negative so in quad 3/4
 
         rotation = rad - orientation
 
-        if abs(rotation) > pi:
+        if abs(rotation) > 3.15:
             rotation += 2*pi
+        if abs(rotation) > 3.15:
+            rotation = -rad - orientation
+            print(f"a{a} b{b}")
+            print(f"rad {rad}")
+            print(f"orientation {orientation}")
+            print(f"rotation {rotation}")
 
         return rotation
 
