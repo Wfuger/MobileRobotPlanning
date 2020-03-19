@@ -193,14 +193,14 @@ if __name__ == "__main__":
     obs = np.array([[0.5, 1, 1.5, 2], [.5, 8, 1.5, 9]], dtype=np.float)
     planner=Planner(obs,robot_margin,grid_length,grid_size)
     planner.build_graph()
-    start = [0, 0]
-    end = [5.5, 5.5]
+    start = [0.05, 0.025]
+    end = [5.715, 5.735]
     path=planner.path(start,end)
     if path != -1:
         with open("cell_path.txt", "w") as f:
             for cell in path:
                 f.write(f"{cell}\n")
-        k = Kinematics(0.1, 0.124, 0.028)
+        k = Kinematics(0.1, 0.12, 0.028)
         x_thetas = k.grid_path_to_cspace(path, start, end)
         with open("x_theta_path.txt", "w") as f:
             for cell in x_thetas:
@@ -209,7 +209,7 @@ if __name__ == "__main__":
         with open("path.txt", "w") as f:
             for rot in wheel_rotations:
                 left, right = rot
-                f.write(f"{right} {left}\n")
+                f.write(f"{left} {right}\n")
     
     
     

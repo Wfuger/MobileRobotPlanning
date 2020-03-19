@@ -3,19 +3,24 @@ from math import sqrt, acos, pi
 # x, theta -> wheel rots (w space)
 class Kinematics():
     # all units in meters
-    def __init__(self, cell_size, axle_length, wheel_radius):
+    def __init__(self, cell_size, axle_length, wheel_radius, orientation = 0):
         self.cell_size = cell_size
         self.axle_length = axle_length
         self.wheel_radius = wheel_radius
+        self.orientation = orientation
 
 
     # grid -> x, theta (c space)
     def grid_path_to_cspace(self, path, start, end):
         moves = list()
-        current_theta = pi
-        first_move = self.point_to_cell(start, path[1], 0)
-        # moves.append(first_move)
-        for i in range(1, len(path)):
+        current_theta = self.orientation
+        first_move = self.point_to_cell(start, path[1], self.orientation)
+        current_theta = self.new_orientation(start, (path[1][0]*self.cell_size, path[1][1]*self.cell_size))
+        print(f"first move {(path[1][0]*self.cell_size, path[1][1]*self.cell_size)}")
+        print(f"start {start}")
+        print(f"current_theta {current_theta}")
+        moves.append(first_move)
+        for i in range(2, len(path) - 1):
             a = path[i - 1] 
             b = path[i] 
             x = 1
@@ -24,11 +29,18 @@ class Kinematics():
                 x = sqrt(2)
             translation_m = self.get_translation(x)
             moves.append((translation_m, theta))
+            if i == len(path) - 2:
+                print(f"moof {(translation_m, theta)}")
             current_theta = self.new_orientation(a, b)
 
-        last_move = self.cell_to_point(end, path[-1], current_theta)
-        # moves.append(last_move)
+        last_move = self.cell_to_point(end, path[-2], current_theta)
+        print(f"last move {last_move}")
+        # self.orientation = t
+        current_theta = self.new_orientation((path[-2][0]*self.cell_size, path[-2][1]*self.cell_size), end)
+        moves.append(last_move)
         self.moves = moves
+        print(f"moves len {len(moves)}")
+        print(f"path len {len(path)}")
         return moves
 
     def cspace_to_wheel_rotations(self):
@@ -38,19 +50,33 @@ class Kinematics():
                 wheel_rotations.append(self.rotation_to_wheel_rotation(theta))
             wheel_rotations.append(self.translation_to_wheel_rotation(x))
         return wheel_rotations
+        # simplified = list()
+        # agg = 0
+        # for left, right in wheel_rotations:
+        #     if left != right:
+        #         if agg != 0:
+        #             simplified.append((agg, agg))
+        #         simplified.append((left, right))
+        #         agg = 0
+        #     agg += right
+        # if agg != 0:
+        #     simplified.append((agg, agg))
+            
+
+        # return simplified
 
 
-    def point_to_cell(self, cell, point, orientation):
+    def point_to_cell(self, point, cell, orientation):
         grid_x, grid_y = cell
-        center_x = (grid_x * self.cell_size) + (self.cell_size/2)
-        center_y = (grid_y * self.cell_size) + (self.cell_size/2)
+        center_x = (grid_x * self.cell_size)
+        center_y = (grid_y * self.cell_size)
         theta = self.get_rotation(point, (center_x, center_y), orientation)
         vec = self.get_vector(point, (center_x, center_y))
         mag = self.magnitude(vec)
         return mag, theta
 
 
-    def cell_to_point(self, cell, point, orientation):
+    def cell_to_point(self, point, cell, orientation):
         grid_x, grid_y = cell
         center_x = (grid_x * self.cell_size) + (self.cell_size/2)
         center_y = (grid_y * self.cell_size) + (self.cell_size/2)
@@ -84,15 +110,14 @@ class Kinematics():
         # cos(theta) = dot_prod(v, i^)/mag(v)
         cos_theta = self.dot_product(vec, (1, 0))/(self.magnitude(vec))
         rad = acos(cos_theta)
+        if vec[1] < 0:
+            rad *= -1
         return rad
 
 
     def get_rotation(self, a, b, orientation):
         rad = self.new_orientation(a, b)
         # y direction of vector is negative so in quad 3/4
-        vec = self.get_vector(a, b)
-        if vec[1] < 0:
-            rad *= -1
 
         rotation = rad - orientation
 
