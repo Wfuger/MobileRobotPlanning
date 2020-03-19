@@ -113,7 +113,12 @@ def get_path(Pr, i, j):
 #print(get_path(Pr,0,5555))
 #
 
-
+def points_oder(start,points):
+    s=np.array(start)
+    p=np.array(points)
+    distance=np.lin.norm(p-s,axis=1)
+    order=np.argsort(distance)
+    return points[order]
 
 class Planner:
     def __init__(self,obstacles,robot_margin,grid_length=10,grid_width=10,grid_size=100):
@@ -154,6 +159,7 @@ class Planner:
             encoding=predecessor
         return p
     def multiple_path(self,start,points):
+        points=points_order(points)
         paths=[]
         for i in range(len(points)):
             end=points[i]
