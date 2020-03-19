@@ -14,36 +14,47 @@ def cell_collision(cell,robot_margin,cell_size,obstacles):
     a=i*cell_size
     b=j*cell_size
     o_size=len(obstacles)
-
+    l1_x=a
+    l1_y=b+cell_size
+    r1_x=a+cell_size
+    r1_y=b
     for i in range(o_size):
         o=obstacles[i]
         c1=min([o[0],o[2]])-robot_margin
         c2=max([o[0],o[2]])+robot_margin
         d1=min([o[1],o[3]])-robot_margin
         d2=max([o[1],o[3]])+robot_margin
+        l2_x=c1
+        l2_y=d2
+        r2_x=c2
+        r2_y=d1
         
-        if(a>c2 or c1>(a+cell_size)):
+        if(l1_x>r2_x or l2_x>r1_x):
             continue
-        elif((b+cell_size<d1) or d2<b):
+        elif(l1_y<r2_y or l2_y<r1_y):
             continue
         else:
             return True
     return False
 
 
-def build_matrix(m,obstacles,robot_margin,cell_size):
-    grid_size=len(m)
-    grid_size=int(math.sqrt(grid_size))
+
+
+
+
+
+
+def build_matrix(m,obstacles,robot_margin,cell_size,grid_size,width_size):
     print(f"grid size... {grid_size}")
     print(f"cell size... {cell_size}")
-    env=np.ones([grid_size,grid_size],dtype=np.bool)
-    for i in range(grid_size):
+    env=np.ones([width_size,grid_size],dtype=np.bool)
+    for i in range(width_size):  
         for j in range(grid_size):
             cell=np.array([i,j],dtype=np.int)
             collision=cell_collision(cell,robot_margin,cell_size,obstacles)
             if(collision):
                 env[i,j]=False
-    for i in range(grid_size):
+    for i in range(width_size):
         for j in range(grid_size):
             if(not env[i,j]):
                 continue
@@ -63,7 +74,7 @@ def build_matrix(m,obstacles,robot_margin,cell_size):
                 if(env[i-1,j]):
                     m[center,bottom]=1
                     m[bottom,center]=1
-            if(i<grid_size-1):
+            if(i<width_size-1):
                 up=(i+1)*grid_size+j
                 if(env[i+1,j]):
                     m[center,up]=1
@@ -73,38 +84,52 @@ def build_matrix(m,obstacles,robot_margin,cell_size):
                 if(env[i-1,j-1]):
                     m[center,bottomleft]=1
                     m[bottomleft,center]=1
-            if(i>0 and j+1<grid_size):
-                upleft=(i-1)*grid_size+j+1
-                if(env[i-1,j+1]):
-                    m[center,upleft]=1
-                    m[upleft,center]=1
-            if(i+1<grid_size and j+1 <grid_size):
+            if(j>0 and i+1<width_size):
+                upleft=(i+1)*grid_size+j-1
+                if(env[i+1,j-1]):
+                    m[center,upleft]=1.5
+                    m[upleft,center]=1.5
+            if(i+1<width_size and j+1 <grid_size):
                 upright=(i+1)*grid_size+j+1
                 if(env[i+1,j+1]):
-                    m[center,upright]=1
-                    m[upright,center]=1
+                    m[center,upright]=1.5
+                    m[upright,center]=1.5
             if(i>0 and j+1<grid_size):
                 bottomright=(i-1)*grid_size+j+1
                 if(env[i-1,j+1]):
-                    m[center,bottomright]=1
-                    m[bottomright,center]=1
+                    m[center,bottomright]=1.5
+                    m[bottomright,center]=1.5
                 
     return m
 
+def get_path(Pr, i, j):
+    path = [j]
+    k = j
+    while Pr[i, k] != -9999:
+        path.append(Pr[i, k])
+        k = Pr[i, k]
+    return path[::-1]
+#
+#print(get_path(Pr,0,5555))
+#
+
+
 
 class Planner:
-    def __init__(self,obstacles,robot_margin,grid_length=10,grid_size=100):
+    def __init__(self,obstacles,robot_margin,grid_length=10,grid_width=10,grid_size=100):
+        self.grid_width=grid_width
+        
         self.grid_size=grid_size
         self.grid_length=grid_length
-        self.m=np.zeros((grid_size*grid_size,grid_size*grid_size),dtype=int)
         self.cell_size=grid_length/grid_size
+        self.width_size=math.floor(grid_width/self.cell_size)
+        self.m=None
         self.obstacles=obstacles
         self.robot_margin=robot_margin
     def build_graph(self,):
         del self.m
-        grid_size=self.grid_size
-        m=np.zeros((grid_size**2, grid_size**2),dtype=np.int8)
-        self.m=build_matrix(m,self.obstacles,self.robot_margin,self.cell_size)
+        m=np.zeros((self.grid_size*self.width_size, self.grid_size*self.width_size),dtype=np.float16)
+        self.m=build_matrix(m,self.obstacles,self.robot_margin,self.cell_size,self.grid_size,self.width_size)
     def path(self,start,end):
         sx,sy=start
         ex,ey=end
@@ -157,6 +182,35 @@ class Planner:
             paths.append(p)
             start=end
         return paths
+    def multiple_dijk(self,start,points):
+        paths=[]
+        D,Pr=shortest_path(self.m,directed=False, method='D', return_predecessors=True)
+        for i in range(len(points)):
+            end=points[i]
+            sx,sy=start
+            ex,ey=end
+            scx=math.floor(sx/self.cell_size)
+            scy=math.floor(sy/self.cell_size)
+            s_encoding=scx*self.grid_size+scy
+            ecx=math.floor(ex/self.cell_size)
+            ecy=math.floor(ey/self.cell_size)
+            e_encoding=ecx*self.grid_size+ecy
+
+            if(Pr[s_encoding,e_encoding]==-9999):
+                print('no path exists for ',i)
+                paths.append(-1)
+                return paths
+            encoding_path=get_path(Pr,s_encoding,e_encoding)
+            p=[]
+            for i in range(len(encoding_path)):
+                encoding=encoding_path[i]
+                x=encoding//self.grid_size
+                y=encoding%self.grid_size
+                p.append([x,y])
+            paths.append(p)
+            start=end
+        return paths
+        
    
         
     
@@ -175,8 +229,11 @@ class Planner:
 #M=np.ones((10000,10000),dtype=int)
 #
 #
-#D, Pr = shortest_path(M, directed=False, method='D', return_predecessors=True)
-#
+#from time import time
+#start=time()
+#D, Pr = shortest_path(m, directed=False, method='D', return_predecessors=True)
+#print(time()-start)
+##
 #def get_path(Pr, i, j):
 #    path = [j]
 #    k = j
