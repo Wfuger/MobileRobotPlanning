@@ -26,9 +26,12 @@ def draw_paths(points,paths,obs,cell_size):
     for p in points:
         x,y=p
         plt.plot(x,y,'o')
-    for p in paths:
-        path=np.array(p)*cell_size
-        plt.plot(path[:,0],path[:,1])
+    try:
+        for p in paths:
+            path=np.array(p)*cell_size
+            plt.plot(path[:,0],path[:,1])
+    except:
+        plt.savefig('test2.png')
     plt.savefig('test1.png')
         
 
@@ -57,16 +60,16 @@ print(time()-start_time)
 
 start_time=time()
 L=10
-W=9
+W=10
 robot_margin=0.1
 grid_size=100
 # obs=np.array([[20,20,4.5,6.2],[2.6,2.6,4,4]],dtype=np.float)
 # obs = [[[.5, 0, 0], [1, .5, .5]], [[-1, 0, 0], [-.5, .5, .5]]]
-obs = np.array([[0.5, 1, 1.5, 2], [3,3.5,3.5,2]], dtype=np.float)
+obs = np.array([[1.25, 8, 2.5, 10], [3.25,5.75,4.5,7],[5.25,3.5,7,4.75],[8,1.25,10,2.25]], dtype=np.float)
 planner=Planner(obs,robot_margin,grid_length=L,grid_width=W,grid_size=grid_size)
 planner.build_graph()
-start = [3, 0.1]
-points = [[2,2],[2,4],[4.2,4.2],[5.5,5.5]]
+start = [9.5, 0.5]
+points = [[2.75,7.5],[5,5.25],[7.5,2.5],[0.75,9.5]]
 path=planner.multiple_dijk(start,points)
 
 draw_paths(points,path,obs,0.1)
