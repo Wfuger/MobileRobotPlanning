@@ -82,23 +82,23 @@ def build_matrix(m,obstacles,robot_margin,cell_size,grid_size,width_size):
             if(i>0 and j>0):
                 bottomleft=(i-1)*grid_size+j-1
                 if(env[i-1,j-1]):
-                    m[center,bottomleft]=1.4
-                    m[bottomleft,center]=1.4
+                    m[center,bottomleft]=1.1
+                    m[bottomleft,center]=1.1
             if(j>0 and i+1<width_size):
                 upleft=(i+1)*grid_size+j-1
                 if(env[i+1,j-1]):
-                    m[center,upleft]=1.4
-                    m[upleft,center]=1.4
+                    m[center,upleft]=1.1
+                    m[upleft,center]=1.1
             if(i+1<width_size and j+1 <grid_size):
                 upright=(i+1)*grid_size+j+1
                 if(env[i+1,j+1]):
-                    m[center,upright]=1.4
-                    m[upright,center]=1.4
+                    m[center,upright]=1.1
+                    m[upright,center]=1.1
             if(i>0 and j+1<grid_size):
                 bottomright=(i-1)*grid_size+j+1
                 if(env[i-1,j+1]):
-                    m[center,bottomright]=1.4
-                    m[bottomright,center]=1.4
+                    m[center,bottomright]=1.1
+                    m[bottomright,center]=1.1
                 
     return m
 
@@ -112,16 +112,20 @@ def get_path(Pr, i, j):
 #
 #print(get_path(Pr,0,5555))
 #
+def dist(a, b):
+    return sqrt((b[0]-a[0])**2, (b[1]-a[1])**2)
 
 def points_order(start,points):
-    s=np.array(start)
-    p=np.array(points)
-    distance=np.linalg.norm(p-s,axis=1)
-    order=np.argsort(distance)
-    new=[]
-    for i in order:
-        new.append(points[i])
-    return new
+    # s=np.array(start)
+    # e=points.pop()
+    # p=np.array(points)
+    # distance=np.linalg.norm(p-s,axis=1)
+    # order=np.argsort(distance)
+    # new=[]
+    # for i in order:
+    #     new.append(points[i])
+    # new.append(e)
+    return points
 
 class Planner:
     def __init__(self,obstacles,robot_margin,grid_length=10,grid_width=10,grid_size=100):
@@ -222,43 +226,6 @@ class Planner:
         return paths
         
    
-        
-    
-
-
-
-
-#
-#M = np.array([[0, 1, 1, 0, 0, 1],
-#              [1, 0, 1, 1, 0, 0],
-#              [1, 1, 0, 1, 0, 1],
-#              [0, 1, 1, 0, 1, 0],
-#              [0, 0, 0, 1, 0, 1],
-#              [1, 0, 1, 0, 1, 0]],dtype=np.bool)
-#
-#M=np.ones((10000,10000),dtype=int)
-#
-#
-#from time import time
-#start=time()
-#D, Pr = shortest_path(m, directed=False, method='D', return_predecessors=True)
-#print(time()-start)
-##
-#def get_path(Pr, i, j):
-#    path = [j]
-#    k = j
-#    while Pr[i, k] != -9999:
-#        path.append(Pr[i, k])
-#        k = Pr[i, k]
-#    return path[::-1]
-#
-#print(get_path(Pr,1,2))
-#
-#
-#Tcsr = breadth_first_tree(M, 0, directed=False)
-#D,Pr=breadth_first_order(m,0,directed=False)
-
-
 if __name__ == "__main__":
     # check cell collision function
     
@@ -300,10 +267,18 @@ if __name__ == "__main__":
     # obs = [[[.5, 0, 0], [1, .5, .5]], [[-1, 0, 0], [-.5, .5, .5]]]
     # obs = [[],\
 
-    obs = np.array([[1.25,8,2.5,10],
-        [3.5, 5.75, 4.5, 7],
-        [5.25, 3.25, 7,4.75],
-        [8,1.25,10,2.25]], dtype=np.float)
+    # case 1
+    obs=np.array([[0.75, 0.75, 1.25, 9.25],
+        [3.5, 0.75, 4, 9.25],
+        [5.75, 0.75, 6.25, 9.25],
+        [8.75,0.75,9.25,9.25],
+        [0.75, 4, 9.25, 5.75],
+    ])
+    # obs = np.array([[0,3.5,2,8.75],
+    #     [0.5,1.5,9.5,2.25],
+    #     [3.5,3,9.25,5.75],
+    #     [8.25,8.75,8.75,10],
+    #     [9,0.5,9.5,1.5]], dtype=np.float)
     # obs = np.array([[1, 1, 2, 2],
     #     [5, 1,6, 3],
     #     [1, 6, 2, 8],
@@ -312,9 +287,14 @@ if __name__ == "__main__":
     # obs = np.array([[0.5, 1, 1.5, 2], [3,3.5,3.5,2]], dtype=np.float)
     planner=Planner(obs,robot_margin,grid_length=L,grid_width=W,grid_size=grid_size)
     g=planner.build_graph()
-    start = [9.5, 0.5]
-    end = [0.75, 9.5]
-    points = [[2.75, 7.5], [5,5.25], [7.5,2.5],end]
+    start = [.5, .5]
+    end = [9.75, 9.75]
+    points = [
+        [2.5, 3.75],
+        [7.75, 3.75],
+        [4.5, 6.25],
+        end
+    ]
     # [1., 0.5], [3., 1.], [6., 9.], [1., 5.]
     pts = [start] + points
     paths=planner.multiple_dijk(start,points)
@@ -322,8 +302,12 @@ if __name__ == "__main__":
     k = Kinematics(0.1, 0.12, 0.028)
     rots = list()
     if not -1 in paths:
+        with open('cp.txt', 'w') as f:
+            for path in paths:
+                f.write(", ".join([f"({x}, {y})" for x, y in path]))
+                f.write("\n")
         for i in range(len(paths)):
-            x_thetas = k.grid_path_to_cspace(paths[i], pts[i], pts[i+1])
+            x_thetas = k.grid_path_to_cspace(paths[i])
             wheel_rotations = k.cspace_to_wheel_rotations()
             rots += wheel_rotations
         with open("path.txt", "w") as f:

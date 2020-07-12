@@ -11,11 +11,11 @@ class Kinematics():
 
 
     # grid -> x, theta (c space)
-    def grid_path_to_cspace(self, path, start, end):
+    def grid_path_to_cspace(self, path):
         moves = list()
         current_theta = self.orientation
         # print(f"current theta {current_theta}")
-        first_move = self.point_to_cell(start, path[1], self.orientation)
+        # first_move = self.point_to_cell(start, path[1], self.orientation)
         # current_theta = self.new_orientation(start, (path[1][0]*self.cell_size, path[1][1]*self.cell_size))
         # print(f"first move {first_move}")
         # print(f"current theta {current_theta}")
@@ -33,13 +33,14 @@ class Kinematics():
             moves.append((translation_m, theta))
             self.orientation = self.new_orientation(a, b)
 
-        last_move = self.cell_to_point(end, path[-2], current_theta)
+        # last_move = self.cell_to_point(end, path[-2], current_theta)
         # print(f"last move {last_move}")
         # print(f"orientation {current_theta}")
         # self.orientation = t
         # self.orientation = self.new_orientation((path[-2][0]*self.cell_size, path[-2][1]*self.cell_size), end)
         # moves.append(last_move)
         self.moves = moves
+
         # print(f"orientation {self.orientation}")
         # print(f"path len {len(path)}")
         return moves
@@ -115,22 +116,24 @@ class Kinematics():
         # y direction of vector is negative so in quad 3/4
         if vec[1] < 0:
             rad *= -1
+        # if (rad < 0):
+        #     rad += 2*pi
         return rad
 
 
     def get_rotation(self, a, b, orientation):
+        if (orientation < 0):
+            orientation += 2*pi
         rad = self.new_orientation(a, b)
+        if (rad < 0):
+            rad += 2*pi
 
         rotation = rad - orientation
 
-        if abs(rotation) > 3.15:
+        if rotation > 3.15:
+            rotation -= 2*pi
+        if rotation < -3.15:
             rotation += 2*pi
-        if abs(rotation) > 3.15:
-            rotation = -rad - orientation
-            print(f"a{a} b{b}")
-            print(f"rad {rad}")
-            print(f"orientation {orientation}")
-            print(f"rotation {rotation}")
 
         return rotation
 
